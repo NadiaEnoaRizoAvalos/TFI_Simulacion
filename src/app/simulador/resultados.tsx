@@ -16,6 +16,8 @@ interface Resultados {
   porcentajeOcupacionTotal: number;
   capacidadDisponiblePorSector: Record<string, number>;
   cantidadMaterialAcumuladoPorTipo: Record<string, number>;
+  tiempoPromedioDesmontajeConfiguradoMinutos: number;
+  tiempoTotalSimuladoMinutos: number;
 }
 
 interface RespuestaAPI {
@@ -116,6 +118,25 @@ export default function Resultados({
             </span>
           </div>
 
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3">
+              <span className="block text-xs font-semibold uppercase tracking-wide text-green-700">
+                Tiempo promedio configurado
+              </span>
+              <span className="text-lg font-extrabold text-green-900">
+                {r.tiempoPromedioDesmontajeConfiguradoMinutos.toFixed(2)} min
+              </span>
+            </div>
+            <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3">
+              <span className="block text-xs font-semibold uppercase tracking-wide text-green-700">
+                Tiempo total simulado
+              </span>
+              <span className="text-lg font-extrabold text-green-900">
+                {r.tiempoTotalSimuladoMinutos.toFixed(2)} min
+              </span>
+            </div>
+          </div>
+
           {/* Ocupación por sector */}
           <div className="flex flex-col gap-3">
             <span className="text-green-800 font-bold text-sm">
@@ -165,7 +186,6 @@ export default function Resultados({
         <div className="w-full md:flex-1 h-80 md:h-auto bg-white rounded-2xl shadow border border-green-100 overflow-hidden">
           <VistaDeposito3D
             sectores={r.porcentajeOcupacionPorSector}
-            capacidadMaxima={r.capacidadMaximaPorSector}
           />
         </div>
       </div>

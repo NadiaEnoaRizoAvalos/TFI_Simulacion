@@ -1,6 +1,6 @@
 import { CategoriaMaterial, ParametrosEntrada } from "../1_dominio/frontera";
 import { Sector } from "../1_dominio/sector";
-import { Impresora, TipoImpresora } from "../1_dominio/impresora";
+import { TipoImpresora } from "../1_dominio/impresora";
 import { ColaImpresoras } from "./colas";
 import { RelojSimulacion } from "./reloj";
 import { Distribuciones } from "../2_estocastico/distribuciones";
@@ -42,8 +42,9 @@ export class MotorSimulacion {
         const impresora = this.cola.desencolar();
         if (!impresora) return;
 
-        // [ETIQUETA: DISTRIBUCIÓN NORMAL] Se utiliza la entrada tiempoDesmontajePromedio como media
-        const tiempoDesmontaje = Math.max(1, this.distribuciones.normal(this.parametros.tiempoDesmontajePromedio, 3));
+        // Se modela el desmontaje con una exponencial usando la media configurada en minutos.
+        const lambda = 1 / this.parametros.tiempoDesmontajePromedio;
+        const tiempoDesmontaje = this.distribuciones.exponencial(lambda);
         this.reloj.avanzar(tiempoDesmontaje);
 
         // Volúmenes generados por esta unidad (m3)

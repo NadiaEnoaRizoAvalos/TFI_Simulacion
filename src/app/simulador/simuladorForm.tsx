@@ -5,20 +5,17 @@ import { useState } from "react";
 interface FormFields {
   cantidadImpresoras: string;
   espacioGalpon: string;
-  tiempoDesmontaje: string;
 }
 
 interface FormErrors {
   cantidadImpresoras?: string;
   espacioGalpon?: string;
-  tiempoDesmontaje?: string;
 }
 
 export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<string, number>) => void }) {
   const [form, setForm] = useState<FormFields>({
     cantidadImpresoras: "",
     espacioGalpon: "",
-    tiempoDesmontaje: "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -52,16 +49,14 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
     const newErrors: FormErrors = {
       cantidadImpresoras: validate("cantidadImpresoras", form.cantidadImpresoras),
       espacioGalpon: validate("espacioGalpon", form.espacioGalpon),
-      tiempoDesmontaje: validate("tiempoDesmontaje", form.tiempoDesmontaje),
     };
     setErrors(newErrors);
-    setTouched({ cantidadImpresoras: true, espacioGalpon: true, tiempoDesmontaje: true });
+    setTouched({ cantidadImpresoras: true, espacioGalpon: true });
 
     if (Object.values(newErrors).every((e) => !e)) {
       onSubmit({
         cantidadImpresoras: Number(form.cantidadImpresoras),
         espacioGalpon: Number(form.espacioGalpon),
-        tiempoDesmontaje: Number(form.tiempoDesmontaje),
       });
     }
   };
@@ -77,11 +72,6 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
       label: "Espacio total del galpón (m³)",
       hint: "Número mayor a 0",
     },
-    {
-      name: "tiempoDesmontaje",
-      label: "Tiempo de desmontaje promedio",
-      hint: "Número mayor a 0",
-    },
   ];
 
   return (
@@ -90,6 +80,9 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
         <div className="flex flex-col items-center mb-8">
           <span className="text-5xl mb-3">⚙️</span>
           <h2 className="text-2xl font-extrabold text-green-800 tracking-tight">Parámetros de simulación</h2>
+          <p className="mt-3 text-center text-sm text-green-700">
+            El tiempo promedio de desmontaje se toma desde la configuración del servidor en minutos.
+          </p>
           <div className="w-12 h-1 bg-green-400 rounded-full mt-3" />
         </div>
 

@@ -26,7 +26,9 @@ export class MapeadorEstado {
             porcentajeOcupacionPorSector: porcentajeOcupacionPorSector,
             porcentajeOcupacionTotal: metricasTotales.porcentaje,
             capacidadDisponiblePorSector: capacidadDisponiblePorSector,
-            cantidadMaterialAcumuladoPorTipo: cantidadMaterialAcumuladoPorTipo
+            cantidadMaterialAcumuladoPorTipo: cantidadMaterialAcumuladoPorTipo,
+            tiempoPromedioDesmontajeConfiguradoMinutos: motor.parametros.tiempoDesmontajePromedio,
+            tiempoTotalSimuladoMinutos: motor.reloj.getTiempo()
         };
     }
 }

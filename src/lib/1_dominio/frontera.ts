@@ -20,4 +20,6 @@ export interface EstadoSimulador {
     porcentajeOcupacionTotal: number;
     capacidadDisponiblePorSector: Record<CategoriaMaterial, number>;
     cantidadMaterialAcumuladoPorTipo: Record<CategoriaMaterial, number>;
+    tiempoPromedioDesmontajeConfiguradoMinutos: number;
+    tiempoTotalSimuladoMinutos: number;
 }

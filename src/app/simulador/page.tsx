@@ -9,7 +9,6 @@ type Vista = "form" | "loading" | "resultados";
 export interface SimulacionParams {
   cantidadImpresoras: number;
   capacidadTotalM3: number;
-  tiempoDesmontajePromedio: number;
 }
 
 export default function Simulador() {
@@ -21,7 +20,6 @@ export default function Simulador() {
     const payload: SimulacionParams = {
       cantidadImpresoras: data.cantidadImpresoras,
       capacidadTotalM3: data.espacioGalpon,
-      tiempoDesmontajePromedio: data.tiempoDesmontaje,
     };
     setParams(payload);
     setVista("loading");

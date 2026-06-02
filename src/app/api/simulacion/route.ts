@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 // Asegúrate de que estas rutas coincidan con la estructura de tus carpetas
 import { MotorSimulacion } from '@/lib/3_logica_central/motor'; 
 import { MapeadorEstado } from '@/lib/5_integracion/mapeadores';
+import { getTiempoDesmontajePromedioMinutos } from '@/lib/5_integracion/config';
 
 // 1. TIPADO: Definimos exactamente qué "frutas" aceptamos en la licuadora
 interface PeticionSimulacion {
     cantidadImpresoras: number;
     capacidadTotalM3: number;
-    tiempoDesmontajePromedio: number;
 }
 
 export async function POST(request: Request) {
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
         const body: PeticionSimulacion = await request.json();
         
         // Extraemos las variables validando que existan
-        const { cantidadImpresoras, capacidadTotalM3, tiempoDesmontajePromedio } = body;
+        const { cantidadImpresoras, capacidadTotalM3 } = body;
 
         // Pequeña validación de seguridad
         if (!cantidadImpresoras || !capacidadTotalM3) {
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         const motor = new MotorSimulacion({
             cantidadImpresoras,
             capacidadTotalM3,
-            tiempoDesmontajePromedio: tiempoDesmontajePromedio || 25 // Valor por defecto si no lo envían
+            tiempoDesmontajePromedio: getTiempoDesmontajePromedioMinutos()
         });
 
         // ¡Le damos Play a la simulación! (El paso que te faltaba antes)
