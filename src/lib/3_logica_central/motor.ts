@@ -42,8 +42,8 @@ export class MotorSimulacion {
         const impresora = this.cola.desencolar();
         if (!impresora) return;
 
-        // [ETIQUETA: DISTRIBUCIÓN NORMAL] Se utiliza la entrada tiempoDesmontajePromedio como media
-        const tiempoDesmontaje = Math.max(1, this.distribuciones.normal(this.parametros.tiempoDesmontajePromedio, 3));
+        // [DISTRIBUCIÓN Exponencial] Se utiliza la entrada tiempoDesmontajePromedio como alfha
+        const tiempoDesmontaje = this.distribuciones.exponencial(this.parametros.tiempoDesmontajePromedio);
         this.reloj.avanzar(tiempoDesmontaje);
 
         // Volúmenes generados por esta unidad (m3)
