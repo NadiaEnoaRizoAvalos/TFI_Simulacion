@@ -5,20 +5,17 @@ import { useState } from "react";
 interface FormFields {
   cantidadImpresoras: string;
   espacioGalpon: string;
-  tiempoDesmontaje: string;
 }
 
 interface FormErrors {
   cantidadImpresoras?: string;
   espacioGalpon?: string;
-  tiempoDesmontaje?: string;
 }
 
 export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<string, number>) => void }) {
   const [form, setForm] = useState<FormFields>({
     cantidadImpresoras: "",
     espacioGalpon: "",
-    tiempoDesmontaje: "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -52,16 +49,14 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
     const newErrors: FormErrors = {
       cantidadImpresoras: validate("cantidadImpresoras", form.cantidadImpresoras),
       espacioGalpon: validate("espacioGalpon", form.espacioGalpon),
-      tiempoDesmontaje: validate("tiempoDesmontaje", form.tiempoDesmontaje),
     };
     setErrors(newErrors);
-    setTouched({ cantidadImpresoras: true, espacioGalpon: true, tiempoDesmontaje: true });
+    setTouched({ cantidadImpresoras: true, espacioGalpon: true });
 
     if (Object.values(newErrors).every((e) => !e)) {
       onSubmit({
         cantidadImpresoras: Number(form.cantidadImpresoras),
         espacioGalpon: Number(form.espacioGalpon),
-        tiempoDesmontaje: Number(form.tiempoDesmontaje),
       });
     }
   };
@@ -75,11 +70,6 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
     {
       name: "espacioGalpon",
       label: "Espacio total del galpón (m³)",
-      hint: "Número mayor a 0",
-    },
-    {
-      name: "tiempoDesmontaje",
-      label: "Tiempo de desmontaje promedio",
       hint: "Número mayor a 0",
     },
   ];

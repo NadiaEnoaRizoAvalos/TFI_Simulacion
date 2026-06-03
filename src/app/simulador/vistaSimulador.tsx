@@ -18,6 +18,8 @@ const galponAncho = 10,
 interface Props {
   sectores: Record<string, number>; // porcentaje ocupación por sector
   capacidadMaxima: Record<string, number>; // m³ máximo por sector
+  alertaGalpon?: boolean;
+  alertaSecciones?: string[];
 }
 
 // Ancho máximo que puede ocupar cada cubito en su celda de la grilla
@@ -30,37 +32,39 @@ function CubitoMaterial({
   porcentaje,
   color,
   posicion,
+  estaExcedida,
 }: {
   nombre: string;
   porcentaje: number;
   color: string;
   posicion: [number, number, number];
+  estaExcedida?: boolean;
 }) {
   // La altura crece proporcionalmente al porcentaje usando el alto del galpón
   // Al 100% ocupa el 90% del alto, si desborda lo supera visualmente
   const altura = (porcentaje / 100) * galponAltura * 0.9;
   const base = TAM_BASE;
+  const finalColor = estaExcedida ? "#000000" : color;
+  const finalText = estaExcedida ? `[SECCION EXCEDIDA]\n${nombre}` : `${nombre}\n${porcentaje.toFixed(1)}%`;
   // El cubito crece desde el piso hacia arriba, por eso el offset Y es altura/2
   return (
     <group position={[posicion[0], -galponAltura / 2, posicion[2]]}>
       <Box args={[base, altura, base]} position={[0, altura / 2, 0]}>
-        <meshStandardMaterial color={color} />
+        <meshStandardMaterial color={finalColor} />
       </Box>
       <Text
         position={[0, altura + 0.3, 0]}
         fontSize={0.25}
-        color="#1a1a1a"
+        color={estaExcedida ? "#EF4444" : "#1a1a1a"}
         anchorX="center"
         anchorY="bottom"
       >
-        {nombre}
-        {"\n"}
-        {porcentaje.toFixed(1)}%
+        {finalText}
       </Text>
     </group>
   );
 }
-export default function VistaSimulador({ sectores, capacidadMaxima }: Props) {
+export default function VistaSimulador({ sectores, capacidadMaxima, alertaGalpon, alertaSecciones = [] }: Props) {
   const materiales = Object.keys(sectores);
   const total = materiales.length;
   return (
@@ -71,31 +75,53 @@ export default function VistaSimulador({ sectores, capacidadMaxima }: Props) {
         <ambientLight intensity={0.6} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         {/* Galpón: cubo wireframe grande */}
-        <Box args={[galponAncho, galponAltura, galponProfundidad]}>
-          <meshStandardMaterial color="#bbf7d0" transparent opacity={0.15} depthWrite={false} />
-        </Box>
-        {/* Borde del galpón */}
-        <Box args={[galponAncho, galponAltura, galponProfundidad]}>
-          <meshBasicMaterial color="#166534" wireframe />
-        </Box>
-        {/* Cubitos de materiales distribuidos en grilla dentro del galpón */}
-        {materiales.map((nombre, i) => {
-          const cols = Math.ceil(Math.sqrt(total));
-          const col = i % cols;
-          const fila = Math.floor(i / cols);
-          const totalFilas = Math.ceil(total / cols);
-          const x = -galponAncho / 2 + 1.5 + (col / (cols - 1 || 1)) * (galponAncho - 3);
-          const z = -galponProfundidad / 2 + 1.5 + (fila / (totalFilas - 1 || 1)) * (galponProfundidad - 3);
-          return (
-            <CubitoMaterial
-              key={nombre}
-              nombre={nombre}
-              porcentaje={sectores[nombre]}
-              color={coloresCubos[nombre] ?? "#94a3b8"}
-              posicion={[x, -galponAltura / 2 + 1, z]}
-            />
-          );
-        })}
+        {alertaGalpon ? (
+          <group>
+            <Box args={[galponAncho, galponAltura, galponProfundidad]}>
+              <meshStandardMaterial color="#000000" transparent opacity={0.9} depthWrite={false} />
+            </Box>
+            <Text
+              position={[0, galponAltura / 2 + 0.5, 0]}
+              fontSize={0.8}
+              color="#EF4444"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.05}
+              outlineColor="#ffffff"
+            >
+              [GALPON EXCEDIDO]
+            </Text>
+          </group>
+        ) : (
+          <group>
+            <Box args={[galponAncho, galponAltura, galponProfundidad]}>
+              <meshStandardMaterial color="#bbf7d0" transparent opacity={0.15} depthWrite={false} />
+            </Box>
+            {/* Borde del galpón */}
+            <Box args={[galponAncho, galponAltura, galponProfundidad]}>
+              <meshBasicMaterial color="#166534" wireframe />
+            </Box>
+            {/* Cubitos de materiales distribuidos en grilla dentro del galpón */}
+            {materiales.map((nombre, i) => {
+              const cols = Math.ceil(Math.sqrt(total));
+              const col = i % cols;
+              const fila = Math.floor(i / cols);
+              const totalFilas = Math.ceil(total / cols);
+              const x = -galponAncho / 2 + 1.5 + (col / (cols - 1 || 1)) * (galponAncho - 3);
+              const z = -galponProfundidad / 2 + 1.5 + (fila / (totalFilas - 1 || 1)) * (galponProfundidad - 3);
+              return (
+                <CubitoMaterial
+                  key={nombre}
+                  nombre={nombre}
+                  porcentaje={sectores[nombre]}
+                  color={coloresCubos[nombre] ?? "#94a3b8"}
+                  posicion={[x, -galponAltura / 2 + 1, z]}
+                  estaExcedida={alertaSecciones.includes(nombre)}
+                />
+              );
+            })}
+          </group>
+        )}
         <OrbitControls enablePan={false} />
         </Suspense>
       </Canvas>

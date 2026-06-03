@@ -1,5 +1,5 @@
 "use client";
-// Al inicio de resultados.tsx, junto a los otros imports
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
 const VistaDeposito3D = dynamic(() => import("./vistaSimulador"), {
@@ -36,10 +36,12 @@ function BarraProgreso({
   label,
   porcentaje,
   color,
+  advertencia,
 }: {
   label: string;
   porcentaje: number;
   color: string;
+  advertencia?: boolean;
 }) {
   const lleno = Math.min(porcentaje, 100);
   const excede = porcentaje > 100;
@@ -59,7 +61,13 @@ function BarraProgreso({
         />
       </div>
       {excede && (
-        <span className="text-red-500 text-xs">⚠ Capacidad superada</span>
+        <span className="text-red-500 text-xs font-bold">⚠ Capacidad superada</span>
+      )}
+      {advertencia && !excede && (
+        <div className="flex flex-col mt-1">
+          <span className="text-orange-500 text-xs font-bold">[ESTA POR LLEGAR A SU LIMITE]</span>
+          <div className="h-0.5 bg-orange-500 w-full mt-0.5" />
+        </div>
       )}
     </div>
   );
@@ -74,8 +82,33 @@ export default function Resultados({
 }) {
   const data = raw as RespuestaAPI;
   const r = data.resultados;
+
+  // Estados requeridos para las alertas
+  const [alertaGalpon, setAlertaGalpon] = useState(false);
+  const [alertaSecciones, setAlertaSecciones] = useState<string[]>([]);
+  const [advertenciaGeneral, setAdvertenciaGeneral] = useState(false);
+  const [advertenciaSecciones, setAdvertenciaSecciones] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (r) {
+      setAlertaGalpon(r.porcentajeOcupacionTotal >= 100);
+      setAdvertenciaGeneral(r.porcentajeOcupacionTotal >= 85 && r.porcentajeOcupacionTotal < 100);
+
+      const seccionesExcedidas: string[] = [];
+      const seccionesAdvertencia: string[] = [];
+
+      Object.entries(r.porcentajeOcupacionPorSector).forEach(([sector, pct]) => {
+        if (pct >= 100) seccionesExcedidas.push(sector);
+        else if (pct >= 85 && pct < 100) seccionesAdvertencia.push(sector);
+      });
+
+      setAlertaSecciones(seccionesExcedidas);
+      setAdvertenciaSecciones(seccionesAdvertencia);
+    }
+  }, [r]);
+
   const ocupacionTotal = Math.min(r.porcentajeOcupacionTotal, 100);
-  const totalExcede = r.porcentajeOcupacionTotal > 100;
+  const totalExcede = r.porcentajeOcupacionTotal >= 100;
 
   return (
     <div className="flex-1 flex flex-col font-sans py-6 px-6 gap-4">
@@ -114,7 +147,28 @@ export default function Resultados({
               {r.porcentajeOcupacionTotal.toFixed(2)}% utilizado
               {totalExcede && " — ⚠ Capacidad superada"}
             </span>
+            {advertenciaGeneral && (
+              <div className="flex flex-col mt-1">
+                <span className="text-orange-500 text-xs font-bold">[ESTA POR LLEGAR A SU LIMITE]</span>
+                <div className="h-0.5 bg-orange-500 w-full mt-0.5" />
+              </div>
+            )}
           </div>
+
+          {/* Tiempo Total Desarmado */}
+          {data.parametrosRecibidos?.tiempoTotalDesarmado !== undefined && (
+            <div className="flex flex-col gap-1 mt-2 mb-2">
+              <span className="text-green-800 font-bold text-sm">
+                Tiempo empleado en desarmado
+              </span>
+              <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
+                <span className="text-green-700">Total calculado</span>
+                <span className="font-bold text-green-900">
+                  {data.parametrosRecibidos.tiempoTotalDesarmado.toFixed(2)} minutos
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Ocupación por sector */}
           <div className="flex flex-col gap-3">
@@ -128,6 +182,7 @@ export default function Resultados({
                   label={sector}
                   porcentaje={pct}
                   color={COLORES[sector] ?? "bg-green-400"}
+                  advertencia={advertenciaSecciones.includes(sector)}
                 />
               ),
             )}
@@ -166,6 +221,8 @@ export default function Resultados({
           <VistaDeposito3D
             sectores={r.porcentajeOcupacionPorSector}
             capacidadMaxima={r.capacidadMaximaPorSector}
+            alertaGalpon={alertaGalpon}
+            alertaSecciones={alertaSecciones}
           />
         </div>
       </div>
