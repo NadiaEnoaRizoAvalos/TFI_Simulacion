@@ -15,6 +15,7 @@ export enum CategoriaMaterial {
 export interface EstadoSimulador {
     volumenPorUnidad: Record<CategoriaMaterial, number>;
     capacidadTotalDeposito: number;
+    tiempoTotalDesarmado: number;
     capacidadMaximaPorSector: Record<CategoriaMaterial, number>;
     porcentajeOcupacionPorSector: Record<CategoriaMaterial, number>;
     porcentajeOcupacionTotal: number;

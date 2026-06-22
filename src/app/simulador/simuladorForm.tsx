@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { parseSimulacionNumber, validateSimulacionField } from "@/lib/5_integracion/simulacionValidacion";
 
 interface FormFields {
   cantidadImpresoras: string;
@@ -22,12 +23,8 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const validate = (name: string, value: string): string => {
-    const num = Number(value);
-    if (value === "") return "Este campo es obligatorio";
-    if (isNaN(num)) return "Debe ser un número válido";
-    if (num <= 0) return "Debe ser mayor a 0";
-    if (name === "cantidadImpresoras" && !Number.isInteger(num)) return "Debe ser un número entero";
-    return "";
+    const field = name === "espacioGalpon" ? "capacidadTotalM3" : "cantidadImpresoras";
+    return validateSimulacionField(field, value);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +53,7 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
     if (Object.values(newErrors).every((e) => !e)) {
       onSubmit({
         cantidadImpresoras: Number(form.cantidadImpresoras),
-        espacioGalpon: Number(form.espacioGalpon),
+        espacioGalpon: parseSimulacionNumber(form.espacioGalpon),
       });
     }
   };
@@ -70,7 +67,7 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
     {
       name: "espacioGalpon",
       label: "Espacio total del galpón (m³)",
-      hint: "Número mayor a 0",
+      hint: "Ej: 0,01"
     },
   ];
 
@@ -88,28 +85,33 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
             const error = errors[name as keyof FormErrors];
             const isTouched = touched[name];
             const isValid = isTouched && !error;
+            const isPrinterField = name === "cantidadImpresoras";
 
             return (
               <div key={name} className="flex flex-col gap-1">
-                <label className="text-green-800 font-semibold text-sm">
+                <label htmlFor={name} className="text-green-800 font-semibold text-sm">
                   {label}
                 </label>
                 <input
-                  type="number"
+                  id={name}
+                  type={isPrinterField ? "number" : "text"}
                   name={name}
                   value={form[name as keyof FormFields]}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  min={name === "cantidadImpresoras" ? 1 : 0.01}
-                  step={name === "cantidadImpresoras" ? 1 : "any"}
+                  min={isPrinterField ? 1 : undefined}
+                  step={isPrinterField ? 1 : undefined}
+                  inputMode={isPrinterField ? "numeric" : "decimal"}
                   placeholder={hint}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? `${name}-error` : undefined}
                   className={`w-full px-4 py-2.5 rounded-lg border text-green-900 placeholder-green-300 outline-none transition-all duration-200
                     ${error ? "border-red-400 bg-red-50 focus:ring-2 focus:ring-red-200" : ""}
                     ${isValid ? "border-green-400 bg-green-50 focus:ring-2 focus:ring-green-200" : ""}
                     ${!error && !isValid ? "border-green-200 bg-white focus:ring-2 focus:ring-green-200 focus:border-green-400" : ""}
                   `}
                 />
-                {error && <span className="text-red-500 text-xs">{error}</span>}
+                {error && <span id={`${name}-error`} className="text-red-500 text-xs">{error}</span>}
                 {isValid && <span className="text-green-500 text-xs">✓ Valor válido</span>}
               </div>
             );

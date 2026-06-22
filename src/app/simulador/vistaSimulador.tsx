@@ -64,7 +64,7 @@ function CubitoMaterial({
     </group>
   );
 }
-export default function VistaSimulador({ sectores, capacidadMaxima, alertaGalpon, alertaSecciones = [] }: Props) {
+export default function VistaSimulador({ sectores, alertaGalpon, alertaSecciones = [] }: Props) {
   const materiales = Object.keys(sectores);
   const total = materiales.length;
   return (

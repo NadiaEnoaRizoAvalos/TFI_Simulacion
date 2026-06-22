@@ -22,6 +22,7 @@ export class MapeadorEstado {
         return {
             volumenPorUnidad: m3PorUnidad,
             capacidadTotalDeposito: motor.parametros.capacidadTotalM3,
+            tiempoTotalDesarmado: motor.reloj.getTiempo(),
             capacidadMaximaPorSector: capacidadMaximaPorSector,
             porcentajeOcupacionPorSector: porcentajeOcupacionPorSector,
             porcentajeOcupacionTotal: metricasTotales.porcentaje,

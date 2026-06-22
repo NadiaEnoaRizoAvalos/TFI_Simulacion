@@ -1,6 +1,6 @@
 import { CategoriaMaterial, ParametrosEntrada } from "../1_dominio/frontera";
 import { Sector } from "../1_dominio/sector";
-import { Impresora, TipoImpresora } from "../1_dominio/impresora";
+import { TipoImpresora } from "../1_dominio/impresora";
 import { ColaImpresoras } from "./colas";
 import { RelojSimulacion } from "./reloj";
 import { Distribuciones } from "../2_estocastico/distribuciones";
