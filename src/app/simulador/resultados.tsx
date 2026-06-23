@@ -1,5 +1,4 @@
 "use client";
-import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
 const VistaDeposito3D = dynamic(() => import("./vistaSimulador"), {
@@ -11,6 +10,7 @@ const VistaDeposito3D = dynamic(() => import("./vistaSimulador"), {
 interface Resultados {
   volumenPorUnidad: Record<string, number>;
   capacidadTotalDeposito: number;
+  tiempoTotalDesarmado: number;
   capacidadMaximaPorSector: Record<string, number>;
   porcentajeOcupacionPorSector: Record<string, number>;
   porcentajeOcupacionTotal: number;
@@ -83,29 +83,17 @@ export default function Resultados({
   const data = raw as RespuestaAPI;
   const r = data.resultados;
 
-  // Estados requeridos para las alertas
-  const [alertaGalpon, setAlertaGalpon] = useState(false);
-  const [alertaSecciones, setAlertaSecciones] = useState<string[]>([]);
-  const [advertenciaGeneral, setAdvertenciaGeneral] = useState(false);
-  const [advertenciaSecciones, setAdvertenciaSecciones] = useState<string[]>([]);
+  const alertaGalpon = r.porcentajeOcupacionTotal >= 100;
+  const advertenciaGeneral =
+    r.porcentajeOcupacionTotal >= 85 && r.porcentajeOcupacionTotal < 100;
 
-  useEffect(() => {
-    if (r) {
-      setAlertaGalpon(r.porcentajeOcupacionTotal >= 100);
-      setAdvertenciaGeneral(r.porcentajeOcupacionTotal >= 85 && r.porcentajeOcupacionTotal < 100);
+  const alertaSecciones: string[] = [];
+  const advertenciaSecciones: string[] = [];
 
-      const seccionesExcedidas: string[] = [];
-      const seccionesAdvertencia: string[] = [];
-
-      Object.entries(r.porcentajeOcupacionPorSector).forEach(([sector, pct]) => {
-        if (pct >= 100) seccionesExcedidas.push(sector);
-        else if (pct >= 85 && pct < 100) seccionesAdvertencia.push(sector);
-      });
-
-      setAlertaSecciones(seccionesExcedidas);
-      setAdvertenciaSecciones(seccionesAdvertencia);
-    }
-  }, [r]);
+  Object.entries(r.porcentajeOcupacionPorSector).forEach(([sector, pct]) => {
+    if (pct >= 100) alertaSecciones.push(sector);
+    else if (pct >= 85) advertenciaSecciones.push(sector);
+  });
 
   const ocupacionTotal = Math.min(r.porcentajeOcupacionTotal, 100);
   const totalExcede = r.porcentajeOcupacionTotal >= 100;
@@ -156,15 +144,15 @@ export default function Resultados({
           </div>
 
           {/* Tiempo Total Desarmado */}
-          {data.parametrosRecibidos?.tiempoTotalDesarmado !== undefined && (
+          {r.tiempoTotalDesarmado !== undefined && (
             <div className="flex flex-col gap-1 mt-2 mb-2">
               <span className="text-green-800 font-bold text-sm">
                 Tiempo empleado en desarmado
               </span>
               <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
-                <span className="text-green-700">Total calculado</span>
+                <span className="text-green-700">Total simulado</span>
                 <span className="font-bold text-green-900">
-                  {data.parametrosRecibidos.tiempoTotalDesarmado.toFixed(2)} minutos
+                  {r.tiempoTotalDesarmado.toFixed(2)} minutos
                 </span>
               </div>
             </div>

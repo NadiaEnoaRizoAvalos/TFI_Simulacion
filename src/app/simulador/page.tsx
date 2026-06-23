@@ -3,8 +3,7 @@ import { useState } from "react";
 import SimuladorForm from "./simuladorForm";
 import SimulacionLoading from "./simulacionLoading";
 import Resultados from "./resultados";
-import { GeneradorCongruencialMixto } from "@/lib/2_estocastico/generador";
-import { Distribuciones } from "@/lib/2_estocastico/distribuciones";
+import { SIMULACION_LIMITS } from "@/lib/5_integracion/simulacionValidacion";
 type Vista = "form" | "loading" | "resultados";
 
 export interface SimulacionParams {
@@ -19,18 +18,10 @@ export default function Simulador() {
   const [resultados, setResultados] = useState<unknown>(null);
 
   const handleSubmit = async (data: Record<string, number>) => {
-    const gen = new GeneradorCongruencialMixto();
-    const dist = new Distribuciones(gen);
-    let tiempoTotalDesarmado = 0;
-    for (let i = 0; i < data.cantidadImpresoras; i++) {
-      tiempoTotalDesarmado += dist.exponencial(0.1); // lambda = 0.1
-    }
-
     const payload: SimulacionParams = {
       cantidadImpresoras: data.cantidadImpresoras,
       capacidadTotalM3: data.espacioGalpon,
-      tiempoDesmontajePromedio: tiempoTotalDesarmado / data.cantidadImpresoras,
-      ...({ tiempoTotalDesarmado } as any),
+      tiempoDesmontajePromedio: SIMULACION_LIMITS.tiempoDesmontajePromedioDefault,
     };
     setParams(payload);
     setVista("loading");
