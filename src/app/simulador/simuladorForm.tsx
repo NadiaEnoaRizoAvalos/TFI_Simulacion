@@ -6,25 +6,29 @@ import { parseSimulacionNumber, validateSimulacionField } from "@/lib/5_integrac
 interface FormFields {
   cantidadImpresoras: string;
   espacioGalpon: string;
+  retirosPorSemana: string;
 }
 
 interface FormErrors {
   cantidadImpresoras?: string;
   espacioGalpon?: string;
+  retirosPorSemana?: string;
 }
 
 export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<string, number>) => void }) {
   const [form, setForm] = useState<FormFields>({
     cantidadImpresoras: "",
     espacioGalpon: "",
+    retirosPorSemana: "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const validate = (name: string, value: string): string => {
-    const field = name === "espacioGalpon" ? "capacidadTotalM3" : "cantidadImpresoras";
-    return validateSimulacionField(field, value);
+    if (name === "espacioGalpon") return validateSimulacionField("capacidadTotalM3", value);
+    if (name === "retirosPorSemana") return validateSimulacionField("retirosPorSemana", value);
+    return validateSimulacionField("cantidadImpresoras", value);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,14 +50,16 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
     const newErrors: FormErrors = {
       cantidadImpresoras: validate("cantidadImpresoras", form.cantidadImpresoras),
       espacioGalpon: validate("espacioGalpon", form.espacioGalpon),
+      retirosPorSemana: validate("retirosPorSemana", form.retirosPorSemana),
     };
     setErrors(newErrors);
-    setTouched({ cantidadImpresoras: true, espacioGalpon: true });
+    setTouched({ cantidadImpresoras: true, espacioGalpon: true, retirosPorSemana: true });
 
     if (Object.values(newErrors).every((e) => !e)) {
       onSubmit({
         cantidadImpresoras: Number(form.cantidadImpresoras),
         espacioGalpon: parseSimulacionNumber(form.espacioGalpon),
+        retirosPorSemana: Number(form.retirosPorSemana),
       });
     }
   };
@@ -68,6 +74,11 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
       name: "espacioGalpon",
       label: "Espacio total del galpón (m³)",
       hint: "Ej: 0,01"
+    },
+    {
+      name: "retirosPorSemana",
+      label: "Cantidad de retiros normales por semana",
+      hint: "Entero mayor a 0",
     },
   ];
 
@@ -85,7 +96,7 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
             const error = errors[name as keyof FormErrors];
             const isTouched = touched[name];
             const isValid = isTouched && !error;
-            const isPrinterField = name === "cantidadImpresoras";
+            const isPrinterField = name === "cantidadImpresoras" || name === "retirosPorSemana";
 
             return (
               <div key={name} className="flex flex-col gap-1">

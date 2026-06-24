@@ -10,6 +10,7 @@ export interface SimulacionParams {
   cantidadImpresoras: number;
   capacidadTotalM3: number;
   tiempoDesmontajePromedio: number;
+  retirosPorSemana: number;
 }
 
 export default function Simulador() {
@@ -22,6 +23,7 @@ export default function Simulador() {
       cantidadImpresoras: data.cantidadImpresoras,
       capacidadTotalM3: data.espacioGalpon,
       tiempoDesmontajePromedio: SIMULACION_LIMITS.tiempoDesmontajePromedioDefault,
+      retirosPorSemana: data.retirosPorSemana,
     };
     setParams(payload);
     setVista("loading");
@@ -54,6 +56,6 @@ export default function Simulador() {
   const handleReset = () => { setVista("form"); setResultados(null); };
 
   if (vista === "loading" && params) return <SimulacionLoading params={params} />;
-  if (vista === "resultados") return <Resultados resultados={resultados} onReset={handleReset} />;
+  if (vista === "resultados") return <Resultados resultados={resultados} retirosPorSemana={params?.retirosPorSemana ?? 0} onReset={handleReset} />;
   return <SimuladorForm onSubmit={handleSubmit} />;
 }
