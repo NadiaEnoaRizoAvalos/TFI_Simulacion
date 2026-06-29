@@ -73,12 +73,12 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
     {
       name: "espacioGalpon",
       label: "Espacio Total de almacenamiento de materiales(m³)",
-      hint: "Ej: 0,01"
+      hint: "Entre 0,01 y 50 m³"
     },
     {
       name: "retirosPorSemana",
       label: "Cantidad de retiros normales por semana",
-      hint: "Entero mayor a 0",
+      hint: "Entre 1 y 7",
     },
   ];
 
@@ -110,7 +110,8 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
                   value={form[name as keyof FormFields]}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  min={isPrinterField ? 1 : undefined}
+                  min={isPrinterField ? 1 : name === "espacioGalpon" ? 0.01 : undefined}
+                  max={name === "espacioGalpon" ? 50 : name === "retirosPorSemana" ? 7 : undefined}
                   step={isPrinterField ? 1 : undefined}
                   inputMode={isPrinterField ? "numeric" : "decimal"}
                   placeholder={hint}

@@ -1,11 +1,11 @@
 export const SIMULACION_LIMITS = {
   cantidadImpresorasMax: 100_000,
   capacidadTotalM3Min: 0.01,
-  capacidadTotalM3Max: 1_000_000,
+  capacidadTotalM3Max: 50,
   capacidadTotalM3MaxDecimals: 2,
   tiempoDesmontajePromedioMax: 10_000,
   tiempoDesmontajePromedioDefault: 25,
-  retirosPorSemanaMax: 10_000,
+  retirosPorSemanaMax: 7,
 } as const;
 
 export type SimulacionField =
