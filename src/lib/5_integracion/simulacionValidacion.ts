@@ -11,7 +11,6 @@ export const SIMULACION_LIMITS = {
 export type SimulacionField =
   | "cantidadImpresoras"
   | "capacidadTotalM3"
-  | "tiempoDesmontajePromedio"
   | "retirosPorSemana";
 
 export type SimulacionFieldErrors = Partial<Record<SimulacionField, string>>;
@@ -19,14 +18,12 @@ export type SimulacionFieldErrors = Partial<Record<SimulacionField, string>>;
 export interface SimulacionInput {
   cantidadImpresoras: number;
   capacidadTotalM3: number;
-  tiempoDesmontajePromedio?: number;
   retirosPorSemana: number;
 }
 
 export interface SimulacionInputValida {
   cantidadImpresoras: number;
   capacidadTotalM3: number;
-  tiempoDesmontajePromedio: number;
   retirosPorSemana: number;
 }
 
@@ -138,13 +135,6 @@ export function validateSimulacionInput(input: unknown): SimulacionValidationRes
   );
   if (capacidadError) fieldErrors.capacidadTotalM3 = capacidadError;
 
-  const tiempoError = validatePositiveNumber(
-    safeInput.tiempoDesmontajePromedio,
-    SIMULACION_LIMITS.tiempoDesmontajePromedioMax,
-    false,
-  );
-  if (tiempoError) fieldErrors.tiempoDesmontajePromedio = tiempoError;
-
   const retirosError = validateCantidadImpresoras(safeInput.retirosPorSemana);
   if (retirosError) fieldErrors.retirosPorSemana = retirosError;
 
@@ -158,9 +148,6 @@ export function validateSimulacionInput(input: unknown): SimulacionValidationRes
     data: {
       cantidadImpresoras: parseSimulacionNumber(safeInput.cantidadImpresoras),
       capacidadTotalM3: parseSimulacionNumber(safeInput.capacidadTotalM3),
-      tiempoDesmontajePromedio: isMissing(safeInput.tiempoDesmontajePromedio)
-        ? SIMULACION_LIMITS.tiempoDesmontajePromedioDefault
-        : parseSimulacionNumber(safeInput.tiempoDesmontajePromedio),
       retirosPorSemana: parseSimulacionNumber(safeInput.retirosPorSemana),
     },
   };
@@ -180,7 +167,7 @@ export function validateSimulacionField(
 
   const max = field === "capacidadTotalM3"
     ? SIMULACION_LIMITS.capacidadTotalM3Max
-    : SIMULACION_LIMITS.tiempoDesmontajePromedioMax;
+    : 0;
 
   const required = field === "capacidadTotalM3";
   const min = field === "capacidadTotalM3"

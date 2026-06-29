@@ -72,7 +72,7 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
     },
     {
       name: "espacioGalpon",
-      label: "Espacio total del galpón (m³)",
+      label: "Espacio Total de almacenamiento de materiales(m³)",
       hint: "Ej: 0,01"
     },
     {
@@ -105,7 +105,7 @@ export default function SimuladorForm({ onSubmit }: { onSubmit: (data: Record<st
                 </label>
                 <input
                   id={name}
-                  type={isPrinterField ? "number" : "text"}
+                  type='number'
                   name={name}
                   value={form[name as keyof FormFields]}
                   onChange={handleChange}

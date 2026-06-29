@@ -8,14 +8,20 @@ const VistaDeposito3D = dynamic(() => import("./vistaSimulador"), {
   ),
 });
 interface Resultados {
-  volumenPorUnidad: Record<string, number>;
-  capacidadTotalDeposito: number;
   tiempoTotalDesarmado: number;
+  diasEstimados: number;
   capacidadMaximaPorSector: Record<string, number>;
   porcentajeOcupacionPorSector: Record<string, number>;
   porcentajeOcupacionTotal: number;
   capacidadDisponiblePorSector: Record<string, number>;
-  cantidadMaterialAcumuladoPorTipo: Record<string, number>;
+  retirosNormales: number;
+  retirosExtraordinarios: number;
+  coeficienteExtraordinario: number;
+  superaUmbral: boolean;
+  alertaGalpon: boolean;
+  advertenciaGeneral: boolean;
+  alertaSecciones: string[];
+  advertenciaSecciones: string[];
 }
 
 interface RespuestaAPI {
@@ -75,66 +81,16 @@ function BarraProgreso({
 
 export default function Resultados({
   resultados: raw,
-  retirosPorSemana,
   onReset,
 }: {
   resultados: unknown;
-  retirosPorSemana: number;
   onReset: () => void;
 }) {
   const data = raw as RespuestaAPI;
   const r = data.resultados;
 
-  // Cálculo de retiros: por cada sector, contar cuántos retiros hacen falta para bajar del umbral 85%
-  // y calcular el volumen/porcentaje resultante post-retiro
-  let retiro = 0;
-  const porcentajePostRetiro: Record<string, number> = {};
-
-  Object.entries(r.porcentajeOcupacionPorSector).forEach(([sector, pct]) => {
-    const capacidad = r.capacidadMaximaPorSector[sector];
-    const volumenRetiro = capacidad * 0.85;
-    let volumenActual = r.cantidadMaterialAcumuladoPorTipo[sector];
-    if (pct > 85) {
-      while (volumenActual > capacidad * 0.85) {
-        volumenActual -= volumenRetiro;
-        retiro++;
-      }
-    }
-    porcentajePostRetiro[sector] = capacidad > 0 ? (volumenActual / capacidad) * 100 : 0;
-  });
-
-  const diasEstimados = Math.ceil((data.parametrosRecibidos.cantidadImpresoras ?? 0) / 36);
-  const semanasDetrabajo = Math.floor(diasEstimados / 5);
-  const capacidadRetirosNormales = retirosPorSemana * semanasDetrabajo;
-
-  const retirosNormales = Math.min(retiro, capacidadRetirosNormales);
-  const retirosExtraordinarios = Math.max(0, retiro - capacidadRetirosNormales);
-  const retirosTotal = retirosNormales + retirosExtraordinarios;
-  const coeficienteExtraordinario = retirosTotal > 0 ? retirosExtraordinarios / retirosTotal : 0;
-  const superaUmbral = coeficienteExtraordinario > 0.3;
-
-  const porcentajeOcupacionTotalPostRetiro = Object.entries(porcentajePostRetiro).reduce(
-    (acc, [sector, pct]) => acc + (pct / 100) * r.capacidadMaximaPorSector[sector],
-    0
-  ) / r.capacidadTotalDeposito * 100;
-
-  const capacidadDisponiblePostRetiro: Record<string, number> = {};
-  Object.entries(porcentajePostRetiro).forEach(([sector, pct]) => {
-    const capacidad = r.capacidadMaximaPorSector[sector];
-    capacidadDisponiblePostRetiro[sector] = capacidad - (pct / 100) * capacidad;
-  });
-
-  const alertaGalpon = porcentajeOcupacionTotalPostRetiro >= 100;
-  const advertenciaGeneral = porcentajeOcupacionTotalPostRetiro >= 85 && porcentajeOcupacionTotalPostRetiro < 100;
-  const ocupacionTotal = Math.min(porcentajeOcupacionTotalPostRetiro, 100);
-  const totalExcede = porcentajeOcupacionTotalPostRetiro >= 100;
-
-  const alertaSecciones: string[] = [];
-  const advertenciaSecciones: string[] = [];
-  Object.entries(porcentajePostRetiro).forEach(([sector, pct]) => {
-    if (pct >= 100) alertaSecciones.push(sector);
-    else if (pct >= 85) advertenciaSecciones.push(sector);
-  });
+  const ocupacionTotal = Math.min(r.porcentajeOcupacionTotal, 100);
+  const totalExcede = r.porcentajeOcupacionTotal >= 100;
 
   return (
     <div className="flex-1 flex flex-col font-sans py-6 px-6 gap-4">
@@ -170,10 +126,10 @@ export default function Resultados({
             <span
               className={`text-xs font-semibold ${totalExcede ? "text-red-500" : "text-green-700"}`}
             >
-              {porcentajeOcupacionTotalPostRetiro.toFixed(2)}% utilizado
+              {r.porcentajeOcupacionTotal.toFixed(2)}% utilizado
               {totalExcede && " — Capacidad superada"}
             </span>
-            {advertenciaGeneral && (
+            {r.advertenciaGeneral && (
               <div className="flex flex-col mt-1">
                 <span className="text-orange-500 text-xs font-bold">[ESTA POR LLEGAR A SU LIMITE]</span>
                 <div className="h-0.5 bg-orange-500 w-full mt-0.5" />
@@ -190,13 +146,13 @@ export default function Resultados({
               <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
                 <span className="text-green-700">Total simulado</span>
                 <span className="font-bold text-green-900">
-                  {r.tiempoTotalDesarmado.toFixed(2)} minutos
+                  {r.tiempoTotalDesarmado.toFixed(2)} hs
                 </span>
               </div>
               <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
                 <span className="text-green-700">Días estimados</span>
                 <span className="font-bold text-green-900">
-                  {diasEstimados} días
+                  {r.diasEstimados} días
                 </span>
               </div>
             </div>
@@ -212,9 +168,9 @@ export default function Resultados({
                 <BarraProgreso
                   key={sector}
                   label={sector}
-                  porcentaje={porcentajePostRetiro[sector] ?? pct}
+                  porcentaje={pct}
                   color={COLORES[sector] ?? "bg-green-400"}
-                  advertencia={advertenciaSecciones.includes(sector)}
+                  advertencia={r.advertenciaSecciones.includes(sector)}
                 />
               ),
             )}
@@ -225,19 +181,19 @@ export default function Resultados({
             <span className="text-green-800 font-bold text-sm">Retiros semanales</span>
             <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
               <span className="text-green-700">Retiros normales</span>
-              <span className="font-bold text-green-900">{retirosNormales}</span>
+              <span className="font-bold text-green-900">{r.retirosNormales}</span>
             </div>
             <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
               <span className="text-green-700">Retiros extraordinarios</span>
-              <span className="font-bold text-green-900">{retirosExtraordinarios}</span>
+              <span className="font-bold text-green-900">{r.retirosExtraordinarios}</span>
             </div>
             <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
               <span className="text-green-700">Coeficiente extraordinario</span>
-              <span className={`font-bold ${superaUmbral ? "text-red-600" : "text-green-900"}`}>
-                {(coeficienteExtraordinario * 100).toFixed(1)}%
+              <span className={`font-bold ${r.superaUmbral ? "text-red-600" : "text-green-900"}`}>
+                {(r.coeficienteExtraordinario * 100).toFixed(1)}%
               </span>
             </div>
-            {superaUmbral && (
+            {r.superaUmbral && (
               <div className="mt-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2">
                 <span className="text-red-600 text-xs font-bold">
                   Se debe aumentar el tamaño del galpón para poder cumplir con el umbral de retiros extraordinarios
@@ -251,7 +207,7 @@ export default function Resultados({
             <span className="text-green-800 font-bold text-sm">
               Capacidad disponible (m³)
             </span>
-            {Object.entries(capacidadDisponiblePostRetiro).map(
+            {Object.entries(r.capacidadDisponiblePorSector).map(
               ([sector, val]) => (
                 <div
                   key={sector}
@@ -259,7 +215,7 @@ export default function Resultados({
                 >
                   <span className="text-green-700">{sector}</span>
                   <span className="font-bold text-green-900">
-                    {val.toFixed(4)}
+                    {(val as number).toFixed(4)}
                   </span>
                 </div>
               ),
@@ -277,10 +233,10 @@ export default function Resultados({
         {/* Panel gráfica */}
         <div className="w-full md:flex-1 h-80 md:h-auto bg-white rounded-2xl shadow border border-green-100 overflow-hidden">
           <VistaDeposito3D
-            sectores={porcentajePostRetiro}
+            sectores={r.porcentajeOcupacionPorSector}
             capacidadMaxima={r.capacidadMaximaPorSector}
-            alertaGalpon={alertaGalpon}
-            alertaSecciones={alertaSecciones}
+            alertaGalpon={r.alertaGalpon}
+            alertaSecciones={r.alertaSecciones}
           />
         </div>
       </div>

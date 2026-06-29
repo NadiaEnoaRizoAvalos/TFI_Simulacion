@@ -1,7 +1,7 @@
 export interface ParametrosEntrada {
     cantidadImpresoras: number;
     capacidadTotalM3: number;
-    tiempoDesmontajePromedio: number; // min/unidad
+    retirosPorSemana: number;
 }
 
 export enum CategoriaMaterial {
@@ -13,12 +13,18 @@ export enum CategoriaMaterial {
 }
 
 export interface EstadoSimulador {
-    volumenPorUnidad: Record<CategoriaMaterial, number>;
-    capacidadTotalDeposito: number;
     tiempoTotalDesarmado: number;
+    diasEstimados: number;
     capacidadMaximaPorSector: Record<CategoriaMaterial, number>;
     porcentajeOcupacionPorSector: Record<CategoriaMaterial, number>;
     porcentajeOcupacionTotal: number;
     capacidadDisponiblePorSector: Record<CategoriaMaterial, number>;
-    cantidadMaterialAcumuladoPorTipo: Record<CategoriaMaterial, number>;
+    retirosNormales: number;
+    retirosExtraordinarios: number;
+    coeficienteExtraordinario: number;
+    superaUmbral: boolean;
+    alertaGalpon: boolean;
+    advertenciaGeneral: boolean;
+    alertaSecciones: string[];
+    advertenciaSecciones: string[];
 }
