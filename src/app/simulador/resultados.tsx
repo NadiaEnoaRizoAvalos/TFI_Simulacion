@@ -8,14 +8,20 @@ const VistaDeposito3D = dynamic(() => import("./vistaSimulador"), {
   ),
 });
 interface Resultados {
-  volumenPorUnidad: Record<string, number>;
-  capacidadTotalDeposito: number;
   tiempoTotalDesarmado: number;
+  diasEstimados: number;
   capacidadMaximaPorSector: Record<string, number>;
   porcentajeOcupacionPorSector: Record<string, number>;
   porcentajeOcupacionTotal: number;
   capacidadDisponiblePorSector: Record<string, number>;
-  cantidadMaterialAcumuladoPorTipo: Record<string, number>;
+  retirosNormales: number;
+  retirosExtraordinarios: number;
+  coeficienteExtraordinario: number;
+  superaUmbral: boolean;
+  alertaGalpon: boolean;
+  advertenciaGeneral: boolean;
+  alertaSecciones: string[];
+  advertenciaSecciones: string[];
 }
 
 interface RespuestaAPI {
@@ -83,18 +89,6 @@ export default function Resultados({
   const data = raw as RespuestaAPI;
   const r = data.resultados;
 
-  const alertaGalpon = r.porcentajeOcupacionTotal >= 100;
-  const advertenciaGeneral =
-    r.porcentajeOcupacionTotal >= 85 && r.porcentajeOcupacionTotal < 100;
-
-  const alertaSecciones: string[] = [];
-  const advertenciaSecciones: string[] = [];
-
-  Object.entries(r.porcentajeOcupacionPorSector).forEach(([sector, pct]) => {
-    if (pct >= 100) alertaSecciones.push(sector);
-    else if (pct >= 85) advertenciaSecciones.push(sector);
-  });
-
   const ocupacionTotal = Math.min(r.porcentajeOcupacionTotal, 100);
   const totalExcede = r.porcentajeOcupacionTotal >= 100;
 
@@ -133,9 +127,9 @@ export default function Resultados({
               className={`text-xs font-semibold ${totalExcede ? "text-red-500" : "text-green-700"}`}
             >
               {r.porcentajeOcupacionTotal.toFixed(2)}% utilizado
-              {totalExcede && " — ⚠ Capacidad superada"}
+              {totalExcede && " — Capacidad superada"}
             </span>
-            {advertenciaGeneral && (
+            {r.advertenciaGeneral && (
               <div className="flex flex-col mt-1">
                 <span className="text-orange-500 text-xs font-bold">[ESTA POR LLEGAR A SU LIMITE]</span>
                 <div className="h-0.5 bg-orange-500 w-full mt-0.5" />
@@ -152,7 +146,13 @@ export default function Resultados({
               <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
                 <span className="text-green-700">Total simulado</span>
                 <span className="font-bold text-green-900">
-                  {r.tiempoTotalDesarmado.toFixed(2)} minutos
+                  {r.tiempoTotalDesarmado.toFixed(2)} hs
+                </span>
+              </div>
+              <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
+                <span className="text-green-700">Días estimados</span>
+                <span className="font-bold text-green-900">
+                  {r.diasEstimados} días
                 </span>
               </div>
             </div>
@@ -170,9 +170,35 @@ export default function Resultados({
                   label={sector}
                   porcentaje={pct}
                   color={COLORES[sector] ?? "bg-green-400"}
-                  advertencia={advertenciaSecciones.includes(sector)}
+                  advertencia={r.advertenciaSecciones.includes(sector)}
                 />
               ),
+            )}
+          </div>
+
+          {/* Retiros */}
+          <div className="flex flex-col gap-2">
+            <span className="text-green-800 font-bold text-sm">Retiros semanales</span>
+            <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
+              <span className="text-green-700">Retiros normales</span>
+              <span className="font-bold text-green-900">{r.retirosNormales}</span>
+            </div>
+            <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
+              <span className="text-green-700">Retiros extraordinarios</span>
+              <span className="font-bold text-green-900">{r.retirosExtraordinarios}</span>
+            </div>
+            <div className="flex justify-between text-xs bg-green-50 rounded-lg px-3 py-1.5 border border-green-100">
+              <span className="text-green-700">Coeficiente extraordinario</span>
+              <span className={`font-bold ${r.superaUmbral ? "text-red-600" : "text-green-900"}`}>
+                {(r.coeficienteExtraordinario * 100).toFixed(1)}%
+              </span>
+            </div>
+            {r.superaUmbral && (
+              <div className="mt-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2">
+                <span className="text-red-600 text-xs font-bold">
+                  Se debe aumentar el tamaño del galpón para poder cumplir con el umbral de retiros extraordinarios
+                </span>
+              </div>
             )}
           </div>
 
@@ -189,7 +215,7 @@ export default function Resultados({
                 >
                   <span className="text-green-700">{sector}</span>
                   <span className="font-bold text-green-900">
-                    {val.toFixed(4)}
+                    {(val as number).toFixed(4)}
                   </span>
                 </div>
               ),
@@ -209,8 +235,8 @@ export default function Resultados({
           <VistaDeposito3D
             sectores={r.porcentajeOcupacionPorSector}
             capacidadMaxima={r.capacidadMaximaPorSector}
-            alertaGalpon={alertaGalpon}
-            alertaSecciones={alertaSecciones}
+            alertaGalpon={r.alertaGalpon}
+            alertaSecciones={r.alertaSecciones}
           />
         </div>
       </div>

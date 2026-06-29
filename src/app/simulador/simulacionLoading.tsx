@@ -8,10 +8,7 @@ export default function SimulacionLoading({ params }: { params: SimulacionParams
       <div className="bg-white rounded-xl border border-green-100 shadow px-8 py-4 text-sm text-green-700 flex flex-col gap-1">
         <span>🖨️ Impresoras: <strong>{params.cantidadImpresoras}</strong></span>
         <span>🏭 Espacio: <strong>{params.capacidadTotalM3} m³</strong></span>
-        <span>
-          ⏱️ Tiempo promedio de desmontaje:{" "}
-          <strong>{params.tiempoDesmontajePromedio} min/unidad</strong>
-        </span>
+        <span>📦 Retiros por semana: <strong>{params.retirosPorSemana}</strong></span>
       </div>
     </div>
   );

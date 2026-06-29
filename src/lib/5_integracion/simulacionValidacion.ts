@@ -1,29 +1,30 @@
 export const SIMULACION_LIMITS = {
   cantidadImpresorasMax: 100_000,
   capacidadTotalM3Min: 0.01,
-  capacidadTotalM3Max: 1_000_000,
+  capacidadTotalM3Max: 50,
   capacidadTotalM3MaxDecimals: 2,
   tiempoDesmontajePromedioMax: 10_000,
   tiempoDesmontajePromedioDefault: 25,
+  retirosPorSemanaMax: 7,
 } as const;
 
 export type SimulacionField =
   | "cantidadImpresoras"
   | "capacidadTotalM3"
-  | "tiempoDesmontajePromedio";
+  | "retirosPorSemana";
 
 export type SimulacionFieldErrors = Partial<Record<SimulacionField, string>>;
 
 export interface SimulacionInput {
   cantidadImpresoras: number;
   capacidadTotalM3: number;
-  tiempoDesmontajePromedio?: number;
+  retirosPorSemana: number;
 }
 
 export interface SimulacionInputValida {
   cantidadImpresoras: number;
   capacidadTotalM3: number;
-  tiempoDesmontajePromedio: number;
+  retirosPorSemana: number;
 }
 
 export interface SimulacionValidationResult {
@@ -134,12 +135,8 @@ export function validateSimulacionInput(input: unknown): SimulacionValidationRes
   );
   if (capacidadError) fieldErrors.capacidadTotalM3 = capacidadError;
 
-  const tiempoError = validatePositiveNumber(
-    safeInput.tiempoDesmontajePromedio,
-    SIMULACION_LIMITS.tiempoDesmontajePromedioMax,
-    false,
-  );
-  if (tiempoError) fieldErrors.tiempoDesmontajePromedio = tiempoError;
+  const retirosError = validateCantidadImpresoras(safeInput.retirosPorSemana);
+  if (retirosError) fieldErrors.retirosPorSemana = retirosError;
 
   if (Object.keys(fieldErrors).length > 0) {
     return { ok: false, fieldErrors };
@@ -151,9 +148,7 @@ export function validateSimulacionInput(input: unknown): SimulacionValidationRes
     data: {
       cantidadImpresoras: parseSimulacionNumber(safeInput.cantidadImpresoras),
       capacidadTotalM3: parseSimulacionNumber(safeInput.capacidadTotalM3),
-      tiempoDesmontajePromedio: isMissing(safeInput.tiempoDesmontajePromedio)
-        ? SIMULACION_LIMITS.tiempoDesmontajePromedioDefault
-        : parseSimulacionNumber(safeInput.tiempoDesmontajePromedio),
+      retirosPorSemana: parseSimulacionNumber(safeInput.retirosPorSemana),
     },
   };
 }
@@ -166,9 +161,13 @@ export function validateSimulacionField(
     return validateCantidadImpresoras(value) ?? "";
   }
 
+  if (field === "retirosPorSemana") {
+    return validateCantidadImpresoras(value) ?? "";
+  }
+
   const max = field === "capacidadTotalM3"
     ? SIMULACION_LIMITS.capacidadTotalM3Max
-    : SIMULACION_LIMITS.tiempoDesmontajePromedioMax;
+    : 0;
 
   const required = field === "capacidadTotalM3";
   const min = field === "capacidadTotalM3"

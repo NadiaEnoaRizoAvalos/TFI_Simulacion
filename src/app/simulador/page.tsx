@@ -3,13 +3,12 @@ import { useState } from "react";
 import SimuladorForm from "./simuladorForm";
 import SimulacionLoading from "./simulacionLoading";
 import Resultados from "./resultados";
-import { SIMULACION_LIMITS } from "@/lib/5_integracion/simulacionValidacion";
 type Vista = "form" | "loading" | "resultados";
 
 export interface SimulacionParams {
   cantidadImpresoras: number;
   capacidadTotalM3: number;
-  tiempoDesmontajePromedio: number;
+  retirosPorSemana: number;
 }
 
 export default function Simulador() {
@@ -21,7 +20,7 @@ export default function Simulador() {
     const payload: SimulacionParams = {
       cantidadImpresoras: data.cantidadImpresoras,
       capacidadTotalM3: data.espacioGalpon,
-      tiempoDesmontajePromedio: SIMULACION_LIMITS.tiempoDesmontajePromedioDefault,
+      retirosPorSemana: data.retirosPorSemana,
     };
     setParams(payload);
     setVista("loading");
